@@ -2,9 +2,11 @@
 #define MATRIX_H
 
 #include <iostream>
+#include <numeric>
 #include <vector>
 
 using Mat2D = std::vector<std::vector<float>>;
+using Mat1D = std::vector<float>;
 
 enum MatrixType { Identity, Zeros };
 
@@ -69,6 +71,7 @@ public:
   [[nodiscard]] float variance() const;
   [[nodiscard]] std::pair<Matrix, Matrix> luDecomposition() const;
   [[nodiscard]] std::pair<Matrix, Matrix> choleskyDecomposition() const;
+  [[nodiscard]] std::vector<std::vector<float>> findNullVectors() const;
 };
 
 constexpr float Matrix::TOLERANCE = 1e-10;

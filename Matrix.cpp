@@ -836,60 +836,107 @@ void Matrix::generateLatexReport(const std::string &filename,
        << "\\[\n"
        << matrixToLatex() << "\\]\n\n";
 
-  file << "\\section{Determinant}\n"
-       << "The determinant of the matrix is:\n"
-       << "\\[\n"
-       << "det(A) = " << std::fixed << std::setprecision(3) << determinant()
-       << "\\]\n\n";
+  // Check if matrix is square before attempting square-matrix operations
+  const bool isSquare = (rows_ == cols_);
 
-  file << "\\section{Trace}\n"
-       << "The trace of the matrix is:\n"
-       << "\\[\n"
-       << "Tr(A) = " << std::fixed << std::setprecision(3) << trace()
-       << "\\]\n\n";
+  if (isSquare) {
+    // Square matrix operations
+    try {
+      file << "\\section{Determinant}\n"
+           << "The determinant of the matrix is:\n"
+           << "\\[\n"
+           << "det(A) = " << std::fixed << std::setprecision(3) << determinant()
+           << "\\]\n\n";
 
-  file << "\\section{Inverse Matrix}\n"
-       << "The inverse of the matrix is:\n"
-       << "\\[\n";
-  try {
-    Matrix inv = inverse();
-    file << inv.matrixToLatex();
-  } catch (const std::exception &e) {
-    file << "\\text{Matrix is not invertible: " << e.what() << "}\n";
-  }
-  file << "\\]\n\n";
+      file << "\\section{Trace}\n"
+           << "The trace of the matrix is:\n"
+           << "\\[\n"
+           << "Tr(A) = " << std::fixed << std::setprecision(3) << trace()
+           << "\\]\n\n";
 
-  file << "\\section{Verification}\n"
-       << "Multiplying the original matrix with its inverse ($A \\cdot "
-          "A^{-1}$) should give the identity matrix:\n"
-       << "\\[\n";
-  try {
-    Matrix inv = inverse();
-    Matrix verification = multiply(inv);
-    file << verification.matrixToLatex();
-  } catch (const std::exception &e) {
-    file << "\\text{Verification not possible: " << e.what() << "}\n";
-  }
-  file << "\\]\n\n";
-
-  file << "\\section{Eigenvalues}\n"
-       << "The eigenvalues of the matrix are:\n"
-       << "\\[\n";
-  try {
-    std::vector<float> eigenvals = calculateEigenvalues();
-    file << "\\begin{aligned}\n";
-    for (size_t i = 0; i < eigenvals.size(); ++i) {
-      file << "\\lambda_" << (i + 1) << " &= " << std::fixed
-           << std::setprecision(3) << eigenvals[i];
-      if (i < eigenvals.size() - 1) {
-        file << " \\\\\n";
+      file << "\\section{Inverse Matrix}\n"
+           << "The inverse of the matrix is:\n"
+           << "\\[\n";
+      try {
+        Matrix inv = inverse();
+        file << inv.matrixToLatex();
+      } catch (const std::exception &e) {
+        file << "\\text{Matrix is not invertible: " << e.what() << "}\n";
       }
+      file << "\\]\n\n";
+
+      file << "\\section{Verification}\n"
+           << "Multiplying the original matrix with its inverse ($A \\cdot "
+              "A^{-1}$) should give the identity matrix:\n"
+           << "\\[\n";
+      try {
+        Matrix inv = inverse();
+        Matrix verification = multiply(inv);
+        file << verification.matrixToLatex();
+      } catch (const std::exception &e) {
+        file << "\\text{Verification not possible: " << e.what() << "}\n";
+      }
+      file << "\\]\n\n";
+
+      file << "\\section{Eigenvalues}\n"
+           << "The eigenvalues of the matrix are:\n"
+           << "\\[\n";
+      try {
+        std::vector<float> eigenvals = calculateEigenvalues();
+        file << "\\begin{aligned}\n";
+        for (size_t i = 0; i < eigenvals.size(); ++i) {
+          file << "\\lambda_" << (i + 1) << " &= " << std::fixed
+               << std::setprecision(3) << eigenvals[i];
+          if (i < eigenvals.size() - 1) {
+            file << " \\\\\n";
+          }
+        }
+        file << "\n\\end{aligned}\n";
+      } catch (const std::exception &e) {
+        file << "\\text{Eigenvalue calculation error: " << e.what() << "}\n";
+      }
+      file << "\\]\n";
+    } catch (const std::exception &e) {
+      file << "\\text{Error in square matrix calculations: " << e.what()
+           << "}\n";
     }
-    file << "\n\\end{aligned}\n";
-  } catch (const std::exception &e) {
-    file << "\\text{Eigenvalue calculation error: " << e.what() << "}\n";
+  } else {
+    // Non-square matrix notice
+    file << "\\section{Matrix Properties}\n"
+         << "This is a " << rows_ << " × " << cols_ << " matrix.\n"
+         << "Properties such as determinant, trace, inverse, and eigenvalues "
+         << "are only defined for square matrices.\n\n";
   }
-  file << "\\]\n";
+
+  file << "\\section{Null Space Vectors}\n"
+       << "The basis vectors of the null space are:\n"
+       << "\\[\n";
+  try {
+    std::vector<std::vector<float>> nullVecs = findNullVectors();
+    if (nullVecs.empty()) {
+      file << "\\text{The null space contains only the zero vector}\n";
+    } else {
+      file << "\\begin{aligned}\n";
+      for (size_t i = 0; i < nullVecs.size(); ++i) {
+        file << "\\vec{v}_" << (i + 1) << " &= \\begin{bmatrix}\n";
+        for (size_t j = 0; j < nullVecs[i].size(); ++j) {
+          file << std::fixed << std::setprecision(3) << nullVecs[i][j];
+          if (j < nullVecs[i].size() - 1) {
+            file << " \\\\\n";
+          }
+        }
+        file << "\\end{bmatrix}";
+        if (i < nullVecs.size() - 1) {
+          file << " \\\\\n";
+        }
+      }
+      file << "\n\\end{aligned}\n";
+    }
+  } catch (const std::exception &e) {
+    file << "\\text{Error calculating null space vectors: " << e.what()
+         << "}\n";
+  }
+  file << "\\]\n\n";
 
   if (includeAdvancedStats) {
     file << "\\section{Matrix Norms}\n"
@@ -951,4 +998,372 @@ void Matrix::generateLatexReport(const std::string &filename,
 
   file << "\\end{document}\n";
   file.close();
+}
+
+// std::vector<std::vector<float>> Matrix::findNullVectors() const {
+//   // Use Singular Value Decomposition (SVD) approach for better numerical
+//   // stability This is more reliable than RREF for ill-conditioned matrices
+
+//   // Helper function for Householder reflection
+//   auto householderReflection = [](const std::vector<float> &x, size_t start)
+//   {
+//     float norm = 0.0f;
+//     for (size_t i = start; i < x.size(); ++i) {
+//       norm += x[i] * x[i];
+//     }
+//     norm = std::sqrt(norm);
+
+//     if (norm < TOLERANCE)
+//       return std::vector<float>(x.size(), 0.0f);
+
+//     std::vector<float> v(x);
+//     v[start] += (v[start] > 0 ? norm : -norm);
+
+//     float scale = 0.0f;
+//     for (size_t i = start; i < v.size(); ++i) {
+//       scale += v[i] * v[i];
+//     }
+//     scale = 2.0f / scale;
+
+//     return v;
+//   };
+
+//   // Create working copy with increased precision
+//   Matrix A(rows_, cols_);
+//   for (size_t i = 0; i < rows_; ++i) {
+//     for (size_t j = 0; j < cols_; ++j) {
+//       A.data_[i][j] = data_[i][j];
+//     }
+//   }
+
+//   // Compute QR decomposition using Householder reflections
+//   std::vector<std::vector<float>> reflectors;
+//   const size_t min_dim = std::min(rows_, cols_);
+
+//   for (size_t j = 0; j < min_dim; ++j) {
+//     std::vector<float> column(rows_);
+//     for (size_t i = j; i < rows_; ++i) {
+//       column[i] = A.data_[i][j];
+//     }
+
+//     auto v = householderReflection(column, j);
+//     if (v[j] == 0.0f)
+//       continue;
+
+//     reflectors.push_back(v);
+
+//     // Apply reflection to remaining columns
+//     for (size_t k = j; k < cols_; ++k) {
+//       float dot = 0.0f;
+//       for (size_t i = j; i < rows_; ++i) {
+//         dot += v[i] * A.data_[i][k];
+//       }
+//       dot *= 2.0f / (vectorNorm(v) * vectorNorm(v));
+
+//       for (size_t i = j; i < rows_; ++i) {
+//         A.data_[i][k] -= dot * v[i];
+//       }
+//     }
+//   }
+
+//   // Find numerical rank using SVD-like tolerance
+//   float max_diag = 0.0f;
+//   for (size_t i = 0; i < min_dim; ++i) {
+//     max_diag = std::max(max_diag, std::abs(A.data_[i][i]));
+//   }
+
+//   size_t rank = 0;
+//   const float rank_tolerance = max_diag * std::max(rows_, cols_) * TOLERANCE;
+
+//   for (size_t i = 0; i < min_dim; ++i) {
+//     if (std::abs(A.data_[i][i]) > rank_tolerance) {
+//       rank++;
+//     }
+//   }
+
+//   // Initialize null space basis
+//   std::vector<std::vector<float>> nullVectors;
+//   if (rank >= cols_)
+//     return nullVectors; // No null space
+
+//   // For each free variable (cols - rank of them)
+//   for (size_t j = rank; j < cols_; ++j) {
+//     std::vector<float> nullVector(cols_, 0.0f);
+//     nullVector[j] = 1.0f;
+
+//     // Back-substitution with improved numerical stability
+//     for (int i = static_cast<int>(rank) - 1; i >= 0; --i) {
+//       float sum = 0.0f;
+//       for (size_t k = i + 1; k < cols_; ++k) {
+//         sum += A.data_[i][k] * nullVector[k];
+//       }
+
+//       if (std::abs(A.data_[i][i]) > rank_tolerance) {
+//         nullVector[i] = -sum / A.data_[i][i];
+//       } else {
+//         nullVector[i] = 0.0f;
+//       }
+//     }
+
+//     // Apply Gram-Schmidt orthogonalization to improve numerical stability
+//     for (const auto &existing : nullVectors) {
+//       float dot = 0.0f;
+//       for (size_t k = 0; k < cols_; ++k) {
+//         dot += nullVector[k] * existing[k];
+//       }
+//       for (size_t k = 0; k < cols_; ++k) {
+//         nullVector[k] -= dot * existing[k];
+//       }
+//     }
+
+//     // Normalize the vector
+//     float norm = vectorNorm(nullVector);
+//     if (norm > TOLERANCE) {
+//       for (float &component : nullVector) {
+//         component /= norm;
+//       }
+//       nullVectors.push_back(nullVector);
+//     }
+//   }
+
+//   // Additional validation and refinement
+//   if (!nullVectors.empty()) {
+//     // Verify orthogonality to row space
+//     for (auto &nullVector : nullVectors) {
+//       std::vector<float> residual(rows_, 0.0f);
+//       for (size_t i = 0; i < rows_; ++i) {
+//         for (size_t j = 0; j < cols_; ++j) {
+//           residual[i] += data_[i][j] * nullVector[j];
+//         }
+//       }
+
+//       // Iterative refinement if needed
+//       float residualNorm = vectorNorm(residual);
+//       if (residualNorm > TOLERANCE * 10.0f) {
+//         std::vector<float> correction(cols_, 0.0f);
+//         for (size_t j = 0; j < cols_; ++j) {
+//           for (size_t i = 0; i < rows_; ++i) {
+//             correction[j] += data_[i][j] * residual[i];
+//           }
+//         }
+
+//         for (size_t j = 0; j < cols_; ++j) {
+//           nullVector[j] -= correction[j] / (residualNorm * residualNorm);
+//         }
+
+//         // Renormalize after refinement
+//         float norm = vectorNorm(nullVector);
+//         if (norm > TOLERANCE) {
+//           for (float &component : nullVector) {
+//             component /= norm;
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   return nullVectors;
+// }
+
+std::vector<std::vector<float>> Matrix::findNullVectors() const {
+  //--------------------------------------------------------------------------
+  // 1) Check matrix dimensions.
+  //--------------------------------------------------------------------------
+  size_t rows = getRows();
+  size_t cols = getCols();
+  if (rows == 0 || cols == 0) {
+    return {};
+  }
+
+  //--------------------------------------------------------------------------
+  // 2) Make a local copy for in-place pivoted QR factorization.
+  //    We'll store data_ in a nested std::vector<float> for convenience.
+  //--------------------------------------------------------------------------
+  std::vector<std::vector<float>> M(rows, std::vector<float>(cols));
+  for (size_t i = 0; i < rows; ++i) {
+    for (size_t j = 0; j < cols; ++j) {
+      M[i][j] = at(i, j);
+    }
+  }
+
+  //--------------------------------------------------------------------------
+  // 3) Set up a pivot array (to track column permutations) and column norms.
+  //--------------------------------------------------------------------------
+  std::vector<size_t> pivots(cols);
+  for (size_t j = 0; j < cols; ++j) {
+    pivots[j] = j;
+  }
+
+  std::vector<float> colNorm(cols, 0.0f);
+  for (size_t j = 0; j < cols; ++j) {
+    double sumSq = 0.0;
+    for (size_t i = 0; i < rows; ++i) {
+      sumSq += double(M[i][j]) * double(M[i][j]);
+    }
+    colNorm[j] = static_cast<float>(std::sqrt(sumSq));
+  }
+
+  //--------------------------------------------------------------------------
+  // Helper to compute Euclidean norm of M[k..end][col]
+  //--------------------------------------------------------------------------
+  auto columnSegmentNorm = [&](size_t k, size_t col) {
+    double s = 0.0;
+    for (size_t i = k; i < rows; ++i) {
+      s += double(M[i][col]) * double(M[i][col]);
+    }
+    return static_cast<float>(std::sqrt(s));
+  };
+
+  //--------------------------------------------------------------------------
+  // 4) Perform pivoted Householder QR factorization in-place.
+  //--------------------------------------------------------------------------
+  size_t minRC = std::min(rows, cols);
+  constexpr float TOL = TOLERANCE; // usage of the class-defined tolerance
+
+  for (size_t k = 0; k < minRC; ++k) {
+    // 4a) Pivot: select the column j >= k with the largest norm
+    size_t pivotCol = k;
+    float maxNorm = colNorm[k];
+    for (size_t j = k + 1; j < cols; ++j) {
+      if (colNorm[j] > maxNorm) {
+        maxNorm = colNorm[j];
+        pivotCol = j;
+      }
+    }
+
+    // 4b) Swap the chosen pivot column with column k
+    if (pivotCol != k) {
+      std::swap(pivots[pivotCol], pivots[k]);
+      std::swap(colNorm[pivotCol], colNorm[k]);
+      for (size_t i = 0; i < rows; ++i) {
+        std::swap(M[i][pivotCol], M[i][k]);
+      }
+    }
+
+    // 4c) Form the Householder vector to eliminate sub-diagonal elements in
+    // column k
+    float normX = columnSegmentNorm(k, k);
+    if (normX < TOL) {
+      // If the column is too small, skip reflection
+      continue;
+    }
+    float alpha = (M[k][k] > 0.f) ? -normX : normX;
+    float v0 = M[k][k] - alpha;
+    M[k][k] = alpha; // on diagonal
+
+    // 4d) Apply reflection to the trailing columns [k+1..cols-1]
+    //     Using the simplified Householder formula:
+    //     H = I - (v * v^T) / (v^T v), where v = [v0 M[k+1][k] ...
+    //     M[rows-1][k]]^T We'll compute dot = v^T * nextCol, then scale, then
+    //     subtract.
+    for (size_t j = k + 1; j < cols; ++j) {
+      double dot = double(v0) * double(M[k][j]);
+      for (size_t i = k + 1; i < rows; ++i) {
+        dot += double(M[i][k]) * double(M[i][j]);
+      }
+      double denom = double(v0) * double(v0);
+      for (size_t i = k + 1; i < rows; ++i) {
+        denom += double(M[i][k]) * double(M[i][k]);
+      }
+      if (std::fabs(denom) < 1e-32) {
+        continue; // avoid dividing by zero
+      }
+      double scale = dot / denom;
+      M[k][j] -= static_cast<float>(scale * double(v0));
+      for (size_t i = k + 1; i < rows; ++i) {
+        M[i][j] -= static_cast<float>(scale * double(M[i][k]));
+      }
+    }
+
+    // 4e) Update the norms for columns k+1..cols-1
+    for (size_t j = k + 1; j < cols; ++j) {
+      double s = 0.0;
+      for (size_t i = k; i < rows; ++i) {
+        s += double(M[i][j]) * double(M[i][j]);
+      }
+      colNorm[j] = static_cast<float>(std::sqrt(s));
+    }
+  }
+
+  //--------------------------------------------------------------------------
+  // 5) Determine rank from the diagonal of R
+  //--------------------------------------------------------------------------
+  float maxDiag = 0.0f;
+  for (size_t i = 0; i < minRC; ++i) {
+    float val = std::fabs(M[i][i]);
+    if (val > maxDiag) {
+      maxDiag = val;
+    }
+  }
+  float rankThreshold = maxDiag * float(std::max(rows, cols)) * TOL;
+  size_t rank = 0;
+  for (size_t i = 0; i < minRC; ++i) {
+    if (std::fabs(M[i][i]) > rankThreshold) {
+      rank++;
+    } else {
+      break;
+    }
+  }
+
+  //--------------------------------------------------------------------------
+  // 6) If rank >= cols, no null space
+  //--------------------------------------------------------------------------
+  if (rank >= cols) {
+    return {};
+  }
+
+  //--------------------------------------------------------------------------
+  // 7) Back-substitution to find each null-space vector
+  //--------------------------------------------------------------------------
+  std::vector<std::vector<float>> nullSpace;
+  nullSpace.reserve(cols - rank);
+
+  for (size_t freeIdx = rank; freeIdx < cols; ++freeIdx) {
+    // We'll solve for xPrime in the pivoted system, then un-permute to original
+    std::vector<float> xPrime(cols, 0.0f);
+    xPrime[freeIdx] = 1.0f;
+
+    // R(0..rank-1, 0..rank-1) * x(0..rank-1) = -R(0..rank-1, freeIdx) =>
+    // back-substitute
+    for (int i = int(rank) - 1; i >= 0; --i) {
+      float rhs = -M[size_t(i)][freeIdx];
+      for (size_t c = size_t(i) + 1; c < rank; ++c) {
+        rhs -= M[size_t(i)][c] * xPrime[c];
+      }
+      float diagVal = M[size_t(i)][size_t(i)];
+      if (std::fabs(diagVal) > TOL) {
+        xPrime[size_t(i)] = rhs / diagVal;
+      } else {
+        xPrime[size_t(i)] = 0.0f;
+      }
+    }
+
+    // Un-permute xPrime back to the original column ordering
+    std::vector<float> basis(cols, 0.0f);
+    for (size_t c = 0; c < cols; ++c) {
+      basis[pivots[c]] = xPrime[c];
+    }
+
+    nullSpace.push_back(std::move(basis));
+  }
+
+  //--------------------------------------------------------------------------
+  // 8) Optional: normalize each basis vector
+  //--------------------------------------------------------------------------
+  for (auto &v : nullSpace) {
+    double sumSq = 0.0;
+    for (float val : v) {
+      sumSq += double(val) * double(val);
+    }
+    float nrm = static_cast<float>(std::sqrt(sumSq));
+    if (nrm > TOL) {
+      // Use the class's built-in vectorNorm if you want:
+      // float nrm = vectorNorm(v);
+      for (float &val : v) {
+        val /= nrm;
+      }
+    }
+  }
+
+  return nullSpace;
 }

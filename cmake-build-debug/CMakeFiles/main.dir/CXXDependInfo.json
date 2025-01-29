@@ -1,0 +1,21 @@
+{
+	"bmi-installation" : null,
+	"compiler-frontend-variant" : "GNU",
+	"compiler-id" : "Clang",
+	"compiler-simulate-id" : "",
+	"config" : "Debug",
+	"cxx-modules" : {},
+	"dir-cur-bld" : "/Users/red_shifted/code/C++/MatrixManpulation/cmake-build-debug",
+	"dir-cur-src" : "/Users/red_shifted/code/C++/MatrixManpulation",
+	"dir-top-bld" : "/Users/red_shifted/code/C++/MatrixManpulation/cmake-build-debug",
+	"dir-top-src" : "/Users/red_shifted/code/C++/MatrixManpulation",
+	"exports" : [],
+	"forward-modules-from-target-dirs" : [],
+	"include-dirs" : 
+	[
+		"/Users/red_shifted/code/C++/MatrixManpulation"
+	],
+	"language" : "CXX",
+	"linked-target-dirs" : [],
+	"module-dir" : "/Users/red_shifted/code/C++/MatrixManpulation/cmake-build-debug/CMakeFiles/main.dir"
+}

@@ -1,0 +1,10 @@
+# ninja log v6
+0	80	1737864152887271957	CMakeFiles/main.dir/main.cpp.o.ddi	d6fa0af3fa7a280a
+0	81	1737864152887511878	CMakeFiles/main.dir/Matrix.cpp.o.ddi	6183cd38c6fd5d41
+81	90	1737864152976815577	CMakeFiles/main.dir/CXX.dd	c08552e733b21523
+81	90	1737864152976815577	/Users/red_shifted/code/C++/MatrixManpulation/cmake-build-debug/CMakeFiles/main.dir/CXXModules.json	c08552e733b21523
+81	90	1737864152976815577	CMakeFiles/main.dir/main.cpp.o.modmap	c08552e733b21523
+81	90	1737864152976815577	CMakeFiles/main.dir/Matrix.cpp.o.modmap	c08552e733b21523
+90	591	1737864152977211375	CMakeFiles/main.dir/main.cpp.o	6bbf4d1cf251e45f
+90	759	1737864152977354710	CMakeFiles/main.dir/Matrix.cpp.o	9bcc440ba7a4ab54
+760	803	1737864153647170704	main	ad5b8be1f35ef130
